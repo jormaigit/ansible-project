@@ -1,0 +1,136 @@
+- name: Instalación entorno LAMP en contenedor ubuntu-test
+  hosts: all
+  become: yes
+  vars:
+    mysql_root_password: "test"
+    mysql_db: "tienda"
+    mysql_user: "test"
+    mysql_password: "test"
+    script_sql_local: /home/ansible/ansible-project/data_base/bd_tiendaonlinenueva.sql
+    script_sql_container: /home/ansible/bd_tiendaonlinenueva.sql
+    php_version: "8.0"
+
+  pre_tasks:
+  - name: Instala PyMySQL
+    pip:
+      name: PyMySQL
+      state: present
+    tags:
+      - pretask
+
+  - name: Copia el script .sql al contenedor
+    copy:
+      src: /home/ansible/ansible-project/data_base/bd_tiendaonlinenueva.sql
+      dest: /home/ansible
+    tags:
+      - pretask
+
+  - name: Copia el codigo web a /var/www/html
+    copy:
+      src: /home/ansible/ansible-project/www/
+      dest: /var/www/html/
+    tags:
+      - pretask
+
+  # MYSQL
+  tasks:
+  - name: Instalación MYSQL
+    apt:
+      update_cache: true
+      name: mysql-server
+      state: present
+    tags:
+      - mysql
+    
+  - name: Arrancamos MYSQL
+    service:
+      name: mysql
+      state: started
+    tags:
+      - mysql
+
+  - name: Crear archivo de configuración para cliente MySQL
+    copy:
+        dest: "/root/.my.cnf"
+        content: |
+          [client]
+          user=root
+          password={{ mysql_root_password }}
+        mode: 0600
+    tags:
+      - mysql
+
+  - name: Cambiar el método de autenticación para el usuario root
+    mysql_user:
+      login_user: "root"
+      login_unix_socket: "/var/run/mysqld/mysqld.sock"
+      name: "root"
+      host_all: yes
+      password: "{{ mysql_root_password }}"
+      priv: "*.*:ALL,GRANT"
+      append_privs: yes
+      state: present
+      check_implicit_admin: yes
+    become: yes
+    become_user: root
+    tags:
+      - mysql
+
+
+  - name: Crear la base de datos
+    mysql_db:
+      name: "{{ mysql_db }}"
+      state: present
+    become: yes
+    become_user: root
+    tags:
+      - mysql
+
+  - name: Importar script SQL para la base de datos
+    mysql_db:
+      name: "{{ mysql_db }}"
+      state: import
+      target: "{{ script_sql_container }}"
+    become: yes
+    become_user: root
+    tags:
+      - mysql
+
+
+  # APACHE
+  - name: Instalar apache
+    apt:
+      name: apache2
+      state: present
+    notify: reinicia apache
+    tags:
+      - apache
+
+  - name: Activa el módulo rewrite de Apache
+    shell: a2enmod rewrite
+    notify: reinicia apache
+    tags:
+      - apache
+
+  # PHP
+  - name: Instalación PHP
+    apt:
+      name: 
+        - "php{{ php_version }}"
+        - "php{{ php_version }}-mysql"
+        - "libapache2-mod-php{{ php_version }}"
+      state: present
+    notify: reinicia apache
+    tags:
+      - php
+
+
+
+
+  # Reiniciar apache
+  handlers:
+      - name: reinicia apache
+        service:
+          name: apache2
+          state: restarted
+
