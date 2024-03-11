@@ -25,6 +25,7 @@
       mode: 0744
     tags:
       - pretask
+      - bd
 
   - name: Copia el codigo web a /var/www/html
     copy:
@@ -32,6 +33,7 @@
       dest: /var/www/html/
     tags:
       - pretask
+      - web
 
   # MYSQL
   tasks:
@@ -122,10 +124,6 @@
       executable: /bin/bash
     tags:
       - php
-
-
-
-
 
   # Reiniciar apache
   handlers:
