@@ -5,8 +5,8 @@
     mysql_root_password: "test"
     mysql_db: "tienda"
     mysql_password: "test"
-    script_sql_local: /home/ansible/ansible-project/data_base/bd_tiendaonlinenueva.sql
-    script_sql_container: /home/ansible/bd_tiendaonlinenueva.sql
+    script_sql_local: "{{ playbook_dir }}/data_base/bd_tiendaonlinenueva.sql"
+    script_sql_container: "{{ playbook_dir }}/bd_tiendaonlinenueva.sql"
 
   pre_tasks:
   - name: Instala PyMySQL
@@ -18,7 +18,7 @@
 
   - name: Copia el script .sql al contenedor
     copy:
-      src: /home/ansible/ansible-project/data_base/bd_tiendaonlinenueva.sql
+      src: "{{ playbook_dir }}/data_base/bd_tiendaonlinenueva.sql"
       dest: /home/ansible
       mode: 0744
     tags:
@@ -27,7 +27,7 @@
 
   - name: Copia el codigo web a /var/www/html
     copy:
-      src: /home/ansible/ansible-project/www/
+      src: "{{ playbook_dir }}/www/"
       dest: /var/www/html/
     tags:
       - pretask
