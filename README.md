@@ -30,7 +30,7 @@ Ubuntu 22.04
 
 4. Generar clave publica y privada (sino se tiene generada previamente)
 
-5. Clonar el repistorio con --> git clone git@github.com:jormaigit/ansible-project.git
+5. Clonar el repistorio con --> git clone git@github.com:jormaigit/ansible-project.git  o  git clone https://github.com/jormaigit/ansible-project.git
 
 6. Moverse al directorio --> cd ansible-project
 
