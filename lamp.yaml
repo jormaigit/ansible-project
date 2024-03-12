@@ -6,7 +6,7 @@
     mysql_db: "tienda"
     mysql_password: "test"
     script_sql_local: "{{ playbook_dir }}/data_base/bd_tiendaonlinenueva.sql"
-    script_sql_container: "{{ playbook_dir }}/bd_tiendaonlinenueva.sql"
+    script_sql_container: "/home/ansible/bd_tiendaonlinenueva.sql"
 
   pre_tasks:
   - name: Instala PyMySQL
@@ -18,7 +18,7 @@
 
   - name: Copia el script .sql al contenedor
     copy:
-      src: "{{ playbook_dir }}/data_base/bd_tiendaonlinenueva.sql"
+      src: "{{ script_sql_local }}"
       dest: /home/ansible
       mode: 0744
     tags:
@@ -64,7 +64,7 @@
   - name: Cambio opciones de método de autenticación para el usuario root, permisos y passw
     mysql_user:
       login_user: "root"
-      #login_unix_socket: "/var/run/mysqld/mysqld.sock"
+      login_unix_socket: "/var/run/mysqld/mysqld.sock"
       name: "root"
       password: "{{ mysql_root_password }}"
       priv: "*.*:ALL,GRANT"
@@ -90,7 +90,7 @@
     mysql_db:
       name: "{{ mysql_db }}"
       state: import
-      target: "{{ script_sql_container }}"
+      target: /home/ansible/bd_tiendaonlinenueva.sql
     become: yes
     become_user: root
     tags:
