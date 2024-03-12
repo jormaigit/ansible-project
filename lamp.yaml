@@ -4,11 +4,9 @@
   vars:
     mysql_root_password: "test"
     mysql_db: "tienda"
-    mysql_user: "test"
     mysql_password: "test"
     script_sql_local: /home/ansible/ansible-project/data_base/bd_tiendaonlinenueva.sql
     script_sql_container: /home/ansible/bd_tiendaonlinenueva.sql
-    php_version: "8.0"
 
   pre_tasks:
   - name: Instala PyMySQL
@@ -52,7 +50,7 @@
     tags:
       - mysql
 
-  - name: Crear archivo de configuración para cliente MySQL
+  - name: Archivo de configuración para cliente MySQL login de root
     copy:
         dest: "/root/.my.cnf"
         content: |
@@ -63,12 +61,11 @@
     tags:
       - mysql
 
-  - name: Cambiar el método de autenticación para el usuario root
+  - name: Cambio opciones de método de autenticación para el usuario root, permisos y passw
     mysql_user:
       login_user: "root"
-      login_unix_socket: "/var/run/mysqld/mysqld.sock"
+      #login_unix_socket: "/var/run/mysqld/mysqld.sock"
       name: "root"
-      host_all: yes
       password: "{{ mysql_root_password }}"
       priv: "*.*:ALL,GRANT"
       append_privs: yes
@@ -109,17 +106,11 @@
     tags:
       - apache
 
-  - name: Activa el módulo rewrite de Apache
-    shell: a2enmod rewrite
-    notify: reinicia apache
-    tags:
-      - apache
-
   # PHP
   - name: Instala la última versión de PHP disponible
     ansible.builtin.shell:
       cmd: |
-        apt update -y
+        apt-get update -y
         DEBIAN_FRONTEND=noninteractive apt-get install -y php php-mysql libapache2-mod-php
       executable: /bin/bash
     tags:
@@ -131,4 +122,3 @@
         service:
           name: apache2
           state: restarted
-
